@@ -17,5 +17,4 @@ const MessageInput = ({addMessage}) => {
   )
 }
 
-
 export default MessageInput;

@@ -4,7 +4,9 @@ import MessageInput from './components/MessageInput';
 import UserNameInput from './components/UserNameInput';
 import logo from './logo.svg';
 import './App.css';
+import firebase from './firebase';
 
+const db = firebase.firestore();
 
 type Message = {
   user: string,
@@ -24,12 +26,41 @@ class App extends Component {
   }
 
   addMessage = (content) => {
-    this.setState({
-      messageList: [
-        ...this.state.messageList,
-        {user: this.state.user, content: content}
-      ]
+    // this.setState({
+    //   messageList: [
+    //     ...this.state.messageList,
+    //     {user: this.state.user, content: content}
+    //   ]
+    // })
+
+    db.collection("messages").add({
+      timestamp: Date.now(),
+      user: this.state.user,
+      content: content
     })
+    .then((docRef) => {
+      console.log("Document written with ID: ", docRef.id);
+      this.fetchMessages();
+    })
+    .catch((error) => {
+      console.error("Error adding document: ", error);
+    });
+  }
+
+  componentDidMount = () => {
+    setInterval(() => {
+      this.fetchMessages();
+    }, 2000);
+  };
+
+  fetchMessages = () => {
+    db.collection("messages").orderBy("timestamp", "desc").limit(10).get().then((querySnapshot) => {
+      let messages = [];
+      querySnapshot.forEach((doc) => {
+        messages.unshift(doc.data())
+      })
+      this.setState({messageList: messages})
+    });
   }
 
   setName = (name) => {
